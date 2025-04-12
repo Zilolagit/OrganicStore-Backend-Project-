@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'core'
+    'core',
+    'django_ckeditor_5',
 ]
 
 MIDDLEWARE = [
@@ -112,6 +113,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = 'core.User'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -128,3 +130,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "custom_upload_file"
+# CKEDITOR_IMAGE_BACKEND = "pillow"
+# CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+# CKEDITOR5_CONFIGS = {
+#     'default': {
+#         'toolbar': [
+#             'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+#             'blockQuote', 'undo', 'redo'
+#         ],
+#         'height': 300,
+#         'width': '100%',
+#     }
+# }
