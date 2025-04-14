@@ -131,7 +131,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "custom_upload_file"
+# CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "custom_upload_file"
 # CKEDITOR_IMAGE_BACKEND = "pillow"
 # CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
 # CKEDITOR5_CONFIGS = {

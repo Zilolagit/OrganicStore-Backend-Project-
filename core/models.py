@@ -1,7 +1,9 @@
+from decimal import Decimal
+from math import ceil
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import EmailField, CharField, OneToOneField
-from django_ckeditor_5.fields import CKEditor5Field
+from django.db.models import EmailField, CharField, OneToOneField, Avg
 
 from core.managers import CustomUserManager
 
@@ -37,6 +39,7 @@ class PostCategory(models.Model):
 class ProductCategory(models.Model):
     class Meta:
         verbose_name_plural = 'Product Categories'
+    image = models.ImageField(upload_to='product_category', null=True, blank=True)
     name = models.CharField(max_length=255)
 
 class Product(models.Model):
@@ -44,11 +47,25 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=255)
     category_id = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
-    description = CKEditor5Field('Text', config_name='extends')
-    additional_information = CKEditor5Field('Text', config_name='extends', null=True, blank=True)
+    description = models.TextField()
+    additional_information = models.TextField(null=True, blank=True)
     original_price = models.DecimalField(decimal_places=2, max_digits=10)
     discounted_price = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     is_featured = models.BooleanField(default=False)
+
+    @property
+    def review_count(self):
+        return self.reviews.count()
+
+    @property
+    def average_rating(self):
+        avg = self.reviews.aggregate(avg=Avg('rating'))['avg']
+        return range(1, int(avg or 0) + 1)
+
+    @property
+    def discount_percentage(self):
+        if self.discounted_price:
+            return ceil(((self.discounted_price - self.original_price) * 100) / self.original_price)
 
     def __str__(self):
         return self.name
@@ -126,22 +143,40 @@ class Order(models.Model):
     order_billing = models.ForeignKey(OrderBilling, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders_billing')
     promocode = models.ForeignKey(Promocode, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders_promocode')
 
+    @property
+    def total_price(self):
+        total = 0
+        for item in self.order_items.all():
+            if item.product.discounted_price:
+                total += item.product.discounted_price * item.quantity
+            else:
+                total += item.product.original_price * item.quantity
+        return total
+
+    @property
+    def coupon_discount(self):
+        if self.promocode:
+            discount = (self.total_price * Decimal(self.coupon.percent_off)) / Decimal(100)
+            return discount
+        return Decimal(0)
+
     def __str__(self):
         return f"{self.id} - {self.user.username}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_product_items')
-    quantity = models.IntegerField()
+    quantity = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.id} - {self.product.name}"
 
 class Post(models.Model):
     title = models.CharField(max_length=255)
-    description = CKEditor5Field('Text', config_name='extends')
+    description = models.TextField()
     category = models.ForeignKey(PostCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
+    featured_image = models.ImageField(upload_to='post_images', null=True, blank=True)
 
     def __str__(self):
         return self.title
